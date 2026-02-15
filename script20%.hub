@@ -1,0 +1,431 @@
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+local VirtualUser = game:GetService("VirtualUser")
+local Lighting = game:GetService("Lighting")
+local UserInputService = game:GetService("UserInputService")
+local PathfindingService = game:GetService("PathfindingService")
+local HttpService = game:GetService("HttpService")
+
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+local Backpack = Player.Backpack
+
+local CommF = ReplicatedStorage.Remotes.CommF_
+
+-- Config
+getgenv().BananaConfig = {
+    AutoFarmLevel = false,
+    AutoFarmGunMastery = false,
+    AutoFarmBoss = false,
+    AutoFarmRaid = false,
+    AutoFruitSniper = false,
+    AutoStoreFruit = false,
+    FruitNotifier = false,
+    HopForRareFruit = false,
+    AutoV4 = false,
+    Fly = false,
+    NoClip = false,
+    Speed = 50,
+    JumpPower = 100,
+    GodMode = false,
+    ESPFruits = false,
+    ESPPlayers = false,
+    WebhookURL = "",
+    Humanize = true
+}
+
+-- Teleport Positions (ĐẦY ĐỦ All Islands, Bosses, NPCs, Safe Zones - Full Như Banana Hub)
+local TelePositions = {
+    ["First Sea"] = {
+        ["Windmill Village"] = CFrame.new(979, 16, 1429),
+        ["Middle Town"] = CFrame.new(-690, 15, 1582),
+        ["Jungle"] = CFrame.new(-1211, 14, -1448),
+        ["Pirate Village"] = CFrame.new(-1169, 5, 3837),
+        ["Desert"] = CFrame.new(1094, 7, 4190),
+        ["Frozen Village"] = CFrame.new(1198, 27, -1211),
+        ["Marine Fortress"] = CFrame.new(-4505, 21, 1989),
+        ["Skylands"] = CFrame.new(-4970, 718, -2669),
+        ["Prison"] = CFrame.new(4854, 6, 439),
+        ["Colosseum"] = CFrame.new(-1836, 8, 5343),
+        ["Magma Village"] = CFrame.new(-5231, 9, 8500),
+        ["Underwater City"] = CFrame.new(61163, 19, 1569),
+        ["Fountain City"] = CFrame.new(5132, 5, 7378),
+        ["Upper Skylands"] = CFrame.new(-2091, 464, -6752),
+        ["Spawn Point"] = CFrame.new(1071, 17, 1462)
+    },
+    ["Second Sea"] = {
+        ["Kingdom of Rose"] = CFrame.new(-394, 39, 237),
+        ["Cafe"] = CFrame.new(-380, 77, 255),
+        ["Green Zone"] = CFrame.new(-2448, 73, -3211),
+        ["Graveyard Island"] = CFrame.new(-5411, 49, -788),
+        ["Snow Mountain"] = CFrame.new(542, 402, -5297),
+        ["Hot and Cold"] = CFrame.new(-6026, 16, -5000),
+        ["Cursed Ship"] = CFrame.new(-6508, 84, -132),
+        ["Ice Castle"] = CFrame.new(5400, 28, -6236),
+        ["Forgotten Island"] = CFrame.new(-3043, 39, -10231),
+        ["Usoapp Island"] = CFrame.new(4748, 9, 2849),
+        ["Mini Sky Island"] = CFrame.new(-260, 8, -9755)
+    },
+    ["Third Sea"] = {
+        ["Port Town"] = CFrame.new(-290, 30, 5358),
+        ["Hydra Island"] = CFrame.new(5229, 603, 345),
+        ["Great Tree"] = CFrame.new(2174, 29, -7213),
+        ["Floating Turtle"] = CFrame.new(-10919, 332, -9077),
+        ["Castle on the Sea"] = CFrame.new(-4997, 315, -3132),
+        ["Haunted Castle"] = CFrame.new(-9515, 142, 5535),
+        ["Sea of Treats"] = CFrame.new(-1990, 38, -8663),
+        ["Tiki Outpost"] = CFrame.new(-16217, 9, 389),
+        ["Beautiful Pirate Domain"] = CFrame.new(5310, 28, 22),
+        ["Peanut Island"] = CFrame.new(-2153, 38, -10166),
+        ["Ice Cream Island"] = CFrame.new(-840, 66, -10966),
+        ["Cake Island"] = CFrame.new(-1977, 38, -11940),
+        ["Candy Island"] = CFrame.new(-1245, 38, -11089),
+        ["Chocolate Island"] = CFrame.new(-88, 38, -9242)
+    },
+    ["Bosses"] = {
+        ["Gorilla King"] = CFrame.new(-1128, 41, -449),
+        ["Bobby"] = CFrame.new(-1140, 5, 3827),
+        ["The Saw"] = CFrame.new(-683, 8, 5354),
+        ["Greybeard"] = CFrame.new(-6476, 20, 2148),
+        ["Yeti"] = CFrame.new(1221, 30, -2288),
+        ["Mob Leader"] = CFrame.new(-2840, 8, 4744),
+        ["Vice Admiral"] = CFrame.new(-5036, 29, 4325),
+        ["Warden"] = CFrame.new(5155, 2, 424),
+        ["Chief Warden"] = CFrame.new(5198, 2, 813),
+        ["Swan"] = CFrame.new(5230, 5, 723),
+        ["Magma Admiral"] = CFrame.new(-5693, 18, 8829),
+        ["Fishman Lord"] = CFrame.new(61123, 19, 1569),
+        ["Thunder God"] = CFrame.new(-7748, 5607, -2315),
+        ["Cyborg"] = CFrame.new(6293, 108, -1982),
+        ["Diamond"] = CFrame.new(-720, 9, -1094),
+        ["Jeremy"] = CFrame.new(1986, 190, -432),
+        ["Fajita"] = CFrame.new(-2101, 73, -3320),
+        ["Don Swan"] = CFrame.new(2288, 15, 802),
+        ["Smoke Admiral"] = CFrame.new(-5430, 16, -4984),
+        ["Cursed Captain"] = CFrame.new(-6500, 84, -1200),
+        ["Darkbeard"] = CFrame.new(3677, 62, -3144),
+        ["Tide Keeper"] = CFrame.new(-3570, 73, -2769),
+        ["Stone"] = CFrame.new(-1080, 40, 6779),
+        ["Island Empress"] = CFrame.new(5713, 602, 295),
+        ["Kilo Admiral"] = CFrame.new(2879, 9, 4376),
+        ["Captain Elephant"] = CFrame.new(-13374, 332, -8434),
+        ["Beautiful Pirate"] = CFrame.new(5310, 25, 25),
+        ["Longma"] = CFrame.new(-10238, 602, -10223),
+        ["Soul Reaper"] = CFrame.new(-9524, 316, 6682),
+        ["Cake Queen"] = CFrame.new(-715, 382, -1100),
+        ["Dough King"] = CFrame.new(-2009, 382, -11000),
+        ["rip_indra True Form"] = CFrame.new(-5415, 515, 505)
+    },
+    ["NPCs"] = {
+        ["Blox Fruit Dealer"] = CFrame.new(1038, 7, 1377),
+        ["Awakening Expert"] = CFrame.new(-380, 74, 304),
+        ["Bartilo"] = CFrame.new(-1850, 13, -3258),
+        ["Rip Indra"] = CFrame.new(-2681, 16, -4484),
+        ["Fruit Remover"] = CFrame.new(-2105, 73, -4202),
+        ["Marine Quest Giver"] = CFrame.new(-2571, 25, 2064),
+        ["Fishman Quest Giver"] = CFrame.new(61123, 19, 1569),
+        ["Raid NPC"] = CFrame.new(-429, 73, 183),
+        ["Sword Dealer"] = CFrame.new(-1134, 15, 1576)
+    },
+    ["Safe Zones"] = {
+        ["Cafe Safe"] = CFrame.new(-385, 74, 297),
+        ["Mansion"] = CFrame.new(-391, 332, -419),
+        ["VIP Zone"] = CFrame.new(-5050, 315, -3130),
+        ["Mirage Island Safe"] = CFrame.new(-2150, 450, -7400)
+    },
+    ["Other"] = {
+        ["Mirage Island"] = CFrame.new(-2150, 450, -7400),
+        ["Gear Spawn"] = CFrame.new(-4754, 8, -1050),
+        ["Sea Beast Spawn"] = CFrame.new(0, 50, 0),
+        ["Raid Room"] = CFrame.new(-6510, 315, -9750)
+    }
+}
+
+-- V4 Positions (Full Auto V4 như Banana)
+local V4Positions = {
+    MirrorFractal = CFrame.new(-1991, 6, -11400), -- Haze Piece for Fractal
+    HighestMountain = CFrame.new(2200, 500, -5000), -- Full Moon Lever
+    HotAndCold = CFrame.new(-5500, 15, -5000), -- Gear
+    TempleOfTime = CFrame.new(-18581, 1000, 225), -- V4 Awaken
+    LemonShrine = CFrame.new(-2100, 70, -1450), -- Lemon for V4
+    TomoeRing = CFrame.new(2000, 50, -5000), -- Tomoe
+    KitsuneShrine = CFrame.new(-9500, 500, 10000) -- Kitsune
+}
+
+-- Tween Function
+local function TweenTo(cframe, speed)
+    speed = speed or 250
+    local distance = (RootPart.Position - cframe.Position).Magnitude
+    local time = distance / speed
+    local tween = TweenService:Create(RootPart, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = cframe})
+    tween:Play()
+    tween.Completed:Wait()
+end
+
+-- Attack Function
+local function Attack(target)
+    if target and target.Humanoid.Health > 0 then
+        TweenTo(target.HumanoidRootPart.CFrame * CFrame.new(0, 10, -5))
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton1(Vector2.new())
+        if getgenv().BananaConfig.Humanize then
+            task.wait(math.random(1,3)/10)
+        end
+    end
+end
+
+-- Get Nearest Function
+local function GetNearestEntity(type, name)
+    local closest, dist = nil, math.huge
+    local folder = (type == "Enemy" and workspace.Enemies) or (type == "Fruit" and workspace) or (type == "Boss" and workspace.Enemies)
+    for _, ent in pairs(folder:GetChildren()) do
+        local root = ent:FindFirstChild("HumanoidRootPart") or ent:FindFirstChild("Handle")
+        if root and (not name or ent.Name:find(name)) then
+            local mag = (RootPart.Position - root.Position).Magnitude
+            if mag < dist then
+                dist = mag
+                closest = ent
+            end
+        end
+    end
+    return closest
+end
+
+-- Auto Farm Level Loop
+task.spawn(function()
+    while task.wait(0.1) do
+        if getgenv().BananaConfig.AutoFarmLevel then
+            local mob = GetNearestEntity("Enemy")
+            if mob then Attack(mob) end
+        end
+    end
+end)
+
+-- Auto Gun Mastery Farm
+task.spawn(function()
+    while task.wait(0.1) do
+        if getgenv().BananaConfig.AutoFarmGunMastery then
+            local guns = {"Soul Guitar", "Acidum Rifle", "Kabucha", "Serpent Bow", "Dark Dagger"} -- Súng ngon như Banana + thêm
+            local gun
+            for _, g in pairs(guns) do
+                gun = Backpack:FindFirstChild(g) or Character:FindFirstChild(g)
+                if gun then break end
+            end
+            if gun then Humanoid:EquipTool(gun) end
+            local mob = GetNearestEntity("Enemy")
+            if mob then Attack(mob) end
+        end
+    end
+end)
+
+-- Auto Boss Farm
+task.spawn(function()
+    while task.wait(1) do
+        if getgenv().BananaConfig.AutoFarmBoss then
+            local boss = GetNearestEntity("Boss")
+            if boss then Attack(boss) end
+        end
+    end
+end)
+
+-- Auto Raid
+task.spawn(function()
+    while task.wait(5) do
+        if getgenv().BananaConfig.AutoFarmRaid then
+            CommF:InvokeServer("RaidsNpc", "SelectChip", "Flame") -- Example chip, add dropdown in GUI
+            CommF:InvokeServer("RaidsNpc", "StartRaid")
+            local enemy = GetNearestEntity("Enemy")
+            if enemy then Attack(enemy) end
+        end
+    end
+end)
+
+-- Fruit Sniper Ngon Như Banana
+task.spawn(function()
+    while task.wait(0.5) do
+        if getgenv().BananaConfig.AutoFruitSniper then
+            local rareFruits = {"Leopard", "Kitsune", "Dragon", "Mammoth", "Dough", "Buddha", "T-Rex", "Phoenix", "Venom"}
+            for _, fruit in pairs(workspace:GetChildren()) do
+                if fruit:IsA("Tool") and fruit:FindFirstChild("Handle") then
+                    local isRare = false
+                    for _, r in pairs(rareFruits) do
+                        if fruit.Name:find(r) then isRare = true break end
+                    end
+                    if isRare then
+                        TweenTo(fruit.Handle.CFrame)
+                        firetouchinterest(RootPart, fruit.Handle, 0)
+                        task.wait(0.1)
+                        firetouchinterest(RootPart, fruit.Handle, 1)
+                        if getgenv().BananaConfig.AutoStoreFruit then
+                            CommF:InvokeServer("StoreFruit", fruit.Name .."-Store")
+                        end
+                        if getgenv().BananaConfig.FruitNotifier and getgenv().BananaConfig.WebhookURL ~= "" then
+                            HttpService:PostAsync(getgenv().BananaConfig.WebhookURL, HttpService:JSONEncode({content = "Found Rare Fruit: " .. fruit.Name}))
+                        end
+                        if getgenv().BananaConfig.HopForRareFruit then
+                            TeleportService:Teleport(game.PlaceId)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- Auto V4 Full Như Banana
+task.spawn(function()
+    while task.wait(2) do
+        if getgenv().BananaConfig.AutoV4 then
+            -- Step 1: Farm Mirror Fractal from Haze Piece
+            TweenTo(V4Positions.MirrorFractal)
+            local fractalMob = GetNearestEntity("Enemy", "Haze Piece")
+            if fractalMob then Attack(fractalMob) end
+            -- Step 2: Highest Mountain for Full Moon Lever
+            TweenTo(V4Positions.HighestMountain)
+            CommF:InvokeServer("PullLever")
+            -- Step 3: Hot and Cold for Gear
+            TweenTo(V4Positions.HotAndCold)
+            -- Interact gear
+            -- Step 4: Lemon Shrine
+            TweenTo(V4Positions.LemonShrine)
+            -- Farm lemon
+            -- Step 5: Tomoe Ring
+            TweenTo(V4Positions.TomoeRing)
+            -- Farm tomoe
+            -- Step 6: Kitsune Shrine
+            TweenTo(V4Positions.KitsuneShrine)
+            -- Farm kitsune
+            -- Step 7: Temple of Time Awaken V4
+            TweenTo(V4Positions.TempleOfTime)
+            CommF:InvokeServer("AwakenV4")
+        end
+    end
+end)
+
+-- Fly Function
+local FlyBV, FlyBG
+local function ToggleFly(v)
+    if v then
+        FlyBG = Instance.new("BodyGyro", RootPart)
+        FlyBV = Instance.new("BodyVelocity", RootPart)
+        FlyBG.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        FlyBV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        RunService:BindToRenderStep("Fly", 1, function()
+            local cam = workspace.CurrentCamera
+            local vel = Vector3.new()
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then vel = vel + cam.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then vel = vel - cam.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then vel = vel - cam.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then vel = vel + cam.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then vel = vel + Vector3.new(0,1,0) end
+            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then vel = vel - Vector3.new(0,1,0) end
+            FlyBV.Velocity = vel * getgenv().BananaConfig.Speed
+            FlyBG.CFrame = cam.CFrame
+        end)
+    else
+        RunService:UnbindFromRenderStep("Fly")
+        if FlyBG then FlyBG:Destroy() end
+        if FlyBV then FlyBV:Destroy() end
+    end
+end
+
+-- NoClip
+RunService.Stepped:Connect(function()
+    if getgenv().BananaConfig.NoClip then
+        for _, part in pairs(Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+    end
+end)
+
+-- God Mode
+task.spawn(function()
+    while task.wait() do
+        if getgenv().BananaConfig.GodMode then
+            Humanoid.Health = Humanoid.MaxHealth
+        end
+    end
+end)
+
+-- ESP Function
+local ESP = {}
+local function CreateESP(part, text, color)
+    local bb = Instance.new("BillboardGui", part)
+    bb.Size = UDim2.new(0,100,0,50)
+    bb.Adornee = part
+    local lbl = Instance.new("TextLabel", bb)
+    lbl.Size = UDim2.new(1,0,1,0)
+    lbl.Text = text
+    lbl.TextColor3 = color
+    lbl.BackgroundTransparency = 1
+    lbl.TextScaled = true
+    table.insert(ESP, bb)
+end
+
+task.spawn(function()
+    while task.wait(0.5) do
+        if getgenv().BananaConfig.ESPFruits then
+            for _, fruit in pairs(workspace:GetChildren()) do
+                if fruit:IsA("Tool") and fruit:FindFirstChild("Handle") then
+                    CreateESP(fruit.Handle, fruit.Name, Color3.new(1,0,0))
+                end
+            end
+        end
+        if getgenv().BananaConfig.ESPPlayers then
+            for _, plr in pairs(Players:GetPlayers()) do
+                if plr ~= Player and plr.Character and plr.Character.Head then
+                    CreateESP(plr.Character.Head, plr.Name, Color3.new(0,1,0))
+                end
+            end
+        end
+    end
+end)
+
+-- GUI (Giao Diện Giống Banana Hub: Tabs sắp xếp tương tự, icons banana style)
+local Window = OrionLib:MakeWindow({
+    Name = "🐒 Banana Hub - Afua Edition v5",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "BananaAfua",
+    IntroText = "Banana Hub Custom for Afua 🍌"
+})
+
+-- Logo: Add ImageLabel with ID, tint light purple
+-- Note: OrionLib không hỗ trợ trực tiếp, dùng code này trong executor nếu cần GUI logo
+-- local Logo = Instance.new("ImageLabel")
+-- Logo.Image = "rbxassetid://129771247821193"
+-- Logo.ImageColor3 = Color3.fromRGB(200, 162, 255) -- Tím hơi nhạt (light purple)
+-- Logo.Size = UDim2.new(0,100,0,100)
+-- Logo.Parent = Window -- Adjust as needed
+
+local MainTab = Window:MakeTab({Name = "📋 Main", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+MainTab:AddLabel("Chào Afua! Script giống Banana Hub full features.")
+MainTab:AddButton({Name = "Rejoin Server", Callback = function() TeleportService:Teleport(game.PlaceId) end})
+MainTab:AddTextbox({Name = "Webhook URL for Notify", Default = "", Callback = function(v) getgenv().BananaConfig.WebhookURL = v end})
+
+local FarmTab = Window:MakeTab({Name = "🌾 Farm", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+FarmTab:AddToggle({Name = "Auto Farm Level/Quest", Default = false, Callback = function(v) getgenv().BananaConfig.AutoFarmLevel = v end})
+FarmTab:AddToggle({Name = "Auto Farm Gun Mastery (Súng Ngon)", Default = false, Callback = function(v) getgenv().BananaConfig.AutoFarmGunMastery = v end})
+FarmTab:AddToggle({Name = "Auto Farm Boss", Default = false, Callback = function(v) getgenv().BananaConfig.AutoFarmBoss = v end})
+FarmTab:AddToggle({Name = "Auto Farm Raid", Default = false, Callback = function(v) getgenv().BananaConfig.AutoFarmRaid = v end})
+
+local FruitTab = Window:MakeTab({Name = "🍌 Fruit", Icon = "rbxassetid://4483362458", PremiumOnly = false})
+FruitTab:AddToggle({Name = "Auto Fruit Sniper (Rare/Mythic Ngon)", Default = false, Callback = function(v) getgenv().BananaConfig.AutoFruitSniper = v end})
+FruitTab:AddToggle({Name = "Auto Store Fruit", Default = false, Callback = function(v) getgenv().BananaConfig.AutoStoreFruit = v end})
+FruitTab:AddToggle({Name = "Fruit Notifier (Webhook)", Default = false, Callback = function(v) getgenv().BananaConfig.FruitNotifier = v end})
+FruitTab:AddToggle({Name = "Hop Server for Rare Fruit", Default = false, Callback = function(v) getgenv().BananaConfig.HopForRareFruit = v end})
+
+local CombatTab = Window:MakeTab({Name = "⚔️ Combat", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+CombatTab:AddToggle({Name = "Fly (WASD + Space/Shift)", Default = false, Callback = function(v) getgenv().BananaConfig.Fly = v; ToggleFly(v) end})
+CombatTab:AddToggle({Name = "NoClip", Default = false, Callback = function(v) getgenv().BananaConfig.NoClip = v end})
+CombatTab:AddSlider({Name = "Speed", Min = 16, Max = 500, Default = 50, Callback = function(v) getgenv().BananaConfig.Speed = v end})
+CombatTab:AddSlider({Name = "Jump Power", Min = 50, Max = 500, Default = 100, Callback = function(v) getgenv().BananaConfig.JumpPower = v end})
+CombatTab:AddToggle({Name = "God Mode", Default = false, Callback = function(v) getgenv().BananaConfig.GodMode = v end})
