@@ -1,0 +1,7 @@
+-- this script created at https://hoannhatz.github.io/ezscript
+getgenv().ScriptTitle = "afuahub"
+getgenv().ScriptSubTitle = "free "
+getgenv().ScriptImage = "https://i.ibb.co/0j0fqqQJ/FB-IMG-1761366148865.jpg"
+getgenv().ScriptAuthorName = "by afua"
+getgenv().ScriptAuthorSubTitle = "https://zalo.me/g/lachky744"
+loadstring(game:HttpGet("https://raw.githubusercontent.com/hoannhatz/Script/refs/heads/main/EZScript.lua"))()
